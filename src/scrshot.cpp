@@ -6,6 +6,8 @@ HANDLE hstdOUT;
 HANDLE hstdIN;
 HANDLE hHeap;
 
+SaveOption saveOption = SaveOption::file;
+
 int main()
 {
 	if ((hstdOUT = GetStdHandle(STD_OUTPUT_HANDLE)) != INVALID_HANDLE_VALUE &&
@@ -31,21 +33,34 @@ int main()
 				WCHAR Readed;
 
 				if (menu == progMenu::main) {
-					stdWrite(L"введите число:\n\t1 - запуск\n\t2 - настройки\n\n");
+					LPWSTR strParam;
+					if (saveOption == SaveOption::file)
+						strParam = L"в файл";
+					else if(saveOption == SaveOption::dropbox)
+						strParam = L"в dropbox";
+
+					wsprintf((LPWSTR)(LPVOID)buff, L"введите число:\n\t1 - запуск\n\t2 - настройки сохранения: %s\n\n", strParam);
+					stdWrite((LPWSTR)(LPVOID)buff);
 					Readed = ReadMenu(buff);
 					if (Readed == *L"1") {
 						break;
 					}
 					else if (Readed == *L"2")
 					{
-						menu = progMenu::settings;
+						menu = progMenu::SaveOption;
 					}
 				}
-				else if (menu == progMenu::settings)
+				else if (menu == progMenu::SaveOption)
 				{
-					stdWrite(L"введите число:\n\t1 - главное меню\n\n");
+					stdWrite(L"настройки сохранения\n\nвведите число:\n\t1 - в файл\n\t2 - dropbox\n\n");
 					Readed = ReadMenu(buff);
 					if (Readed == *L"1") {
+						saveOption = SaveOption::file;
+						menu = progMenu::main;
+					}
+					else if(Readed == *L"2")
+					{
+						saveOption = SaveOption::dropbox;
 						menu = progMenu::main;
 					}
 				}
@@ -66,8 +81,8 @@ void stdWrite(LPWCH str)
 WCHAR ReadMenu(LPVOID buff)
 {
 	DWORD Readed;
-	ReadConsole(hstdIN, buff, buffSize / sizeof(TCHAR) - sizeof(TCHAR), &Readed, NULL);
-	if (Readed == 1 + sizeof(TCHAR)) return *(LPWCH)buff;
+	ReadConsole(hstdIN, buff, buffSize / sizeof(TCHAR), &Readed, NULL);
+	if (Readed == 1 + sizeof(L"\n") / sizeof(TCHAR)) return *(LPWCH)buff;
 	else return NULL;
 }
 
@@ -94,12 +109,8 @@ inline SmartHandle<T>::operator T() { return SHandle; }
 
 inline SmartHDC::SmartHDC(HDC Handle) : SmartHandle<HDC>(Handle) {}
 
-inline SmartHDC::~SmartHDC() {
-	if (SHandle) ReleaseDC(NULL, SHandle);
-}
+inline SmartHDC::~SmartHDC() { if (SHandle) ReleaseDC(NULL, SHandle); }
 
 inline Smartbuffer::Smartbuffer(int size) : SmartHandle(HeapAlloc(hHeap, HEAP_NO_SERIALIZE, size)) {}
 
-inline Smartbuffer::~Smartbuffer() {
-	if (SHandle) HeapFree(hHeap, HEAP_NO_SERIALIZE, SHandle);
-}
+inline Smartbuffer::~Smartbuffer() { if (SHandle) HeapFree(hHeap, HEAP_NO_SERIALIZE, SHandle); }

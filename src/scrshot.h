@@ -3,12 +3,16 @@
 #define UNICODE
 
 #include <Windows.h>
-#include <gdiplus.h>
+//#include <gdiplus.h>
 
-enum class progMenu
-{
+enum class progMenu {
 	main,
-	settings
+	SaveOption
+};
+
+enum class SaveOption {
+	file,
+	dropbox
 };
 
 template <class T>
