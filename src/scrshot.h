@@ -2,6 +2,8 @@
 
 #define UNICODE
 
+#define mkStr(str) scr::lnString((LPWSTR)str, sizeof(str) / sizeof(TCHAR) - 1)
+
 #include <Windows.h>
 //#include <gdiplus.h>
 
@@ -53,6 +55,14 @@ namespace scr {
 		void allocate(int size);
 	};
 
+	struct lnString
+	{
+		DWORD len;
+		LPWCH str;
+
+		lnString(LPWCH str, DWORD len);
+	};
+
 	class String
 	{
 	public:
@@ -63,15 +73,21 @@ namespace scr {
 		
 		WCHAR ReadChar();
 		void ReadStr();
+		void stdWrite();
+		void stdWrite(lnString str);
 
 		DWORD BuffUsed();
 		DWORD Left();
-
+		DWORD LeftLen();
+		DWORD GetOffset();
+		void SetOffset(DWORD Offset);
+		LPWSTR GetStr(DWORD lpStr);
+		void SetLen(DWORD len);
 		void Push();
-		void Reset();
 
-		String* operator = (LPWCH str);
-		String* operator += (LPWCH str);
+		//String* operator = (LPWCH str);
+		String* operator = (lnString str);
+		String* operator += (lnString str);
 		operator LPWSTR();
 
 	private:
@@ -81,11 +97,12 @@ namespace scr {
 		DWORD Size;
 		DWORD CurrentString;
 		DWORD Len;
-		DWORD LastRead;
+		DWORD LastReadWrite;
 
-		void Alloc(DWORD len, bool ReAlloc = false);
+		void Alloc(DWORD len);
 		void CheckSize(DWORD len);
 		void stdRead();
+		void strAdd(DWORD cLen, DWORD nLen, LPWCH str);
 	};
 }
 
@@ -99,8 +116,5 @@ struct TreadPadam
 
 DWORD WINAPI MakeScreen(LPVOID lpParameter);
 inline HANDLE GetHeap();
-void stdWrite(LPWCH str);
-WCHAR ReadMenu(LPVOID buff);
-DWORD ReadBuffer(LPVOID buff);
 void ClearConsole();
 void ErrExit(DWORD Kode);
